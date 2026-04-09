@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Exercise — {{ date }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0 fw-bold"><i class="bi bi-lightning section-icon" style="color:#68d391"></i>Exercise</h5>
+  <div class="date-nav">
+    <input type="date" id="dateNav" value="{{ date }}" onchange="window.location='/exercise?date='+this.value">
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Log form -->
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Log Session</div>
+      <div class="card-body">
+        <form method="post" action="/exercise">
+          <input type="hidden" name="date" value="{{ date }}">
+          <div class="mb-2">
+            <label class="form-label small">Type</label>
+            <input class="form-control" name="type" placeholder="Running, Cycling, Yoga…" required list="exercise-types">
+            <datalist id="exercise-types">
+              <option value="Running"><option value="Cycling"><option value="Walking">
+              <option value="Swimming"><option value="Weight Training"><option value="Yoga">
+              <option value="HIIT"><option value="Pilates"><option value="Rowing">
+            </datalist>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Duration (min)</label>
+            <input class="form-control" name="duration_min" type="number" min="1" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Intensity</label>
+            <select class="form-select" name="intensity" required>
+              <option value="low">Low</option>
+              <option value="moderate" selected>Moderate</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Calories burned (optional)</label>
+            <input class="form-control" name="calories" type="number" min="0" placeholder="—">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Notes (optional)</label>
+            <input class="form-control" name="notes" placeholder="—">
+          </div>
+          <button class="btn btn-primary w-100">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log for the day -->
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header">{{ date }}</div>
+      <div class="card-body p-0">
+        {% if logs %}
+        <table class="table mb-0">
+          <thead><tr>
+            <th>Type</th><th>Duration</th><th>Intensity</th><th>Calories</th><th></th>
+          </tr></thead>
+          <tbody>
+          {% for l in logs %}
+          <tr>
+            <td>{{ l.type }}</td>
+            <td>{{ l.duration_min }} min</td>
+            <td><span class="badge badge-{{ l.intensity }} rounded-pill">{{ l.intensity }}</span></td>
+            <td>{% if l.calories %}{{ l.calories }} kcal{% else %}—{% endif %}</td>
+            <td class="text-end">
+              <form method="post" action="/exercise/delete/{{ l.id }}" style="display:inline">
+                <input type="hidden" name="date" value="{{ date }}">
+                <button class="btn btn-sm" style="color:#718096;background:none;border:none" onclick="return confirm('Delete?')"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% if l.notes %}<tr><td colspan="5" style="color:#718096;font-size:.85rem;padding-top:0">↳ {{ l.notes }}</td></tr>{% endif %}
+          {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="color:#718096;font-size:.85rem">
+              <td colspan="5" class="px-3 py-2">Total: <strong>{{ total_min }} min</strong> ({{ (total_min/60)|round(1) }} h)</td>
+            </tr>
+          </tfoot>
+        </table>
+        {% else %}
+          <p class="text-center py-4" style="color:#4a5568">No exercise logged for this date.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Metabolic — {{ date }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0 fw-bold"><i class="bi bi-heart-pulse section-icon" style="color:#fc8181"></i>Metabolic</h5>
+  <div class="date-nav">
+    <input type="date" value="{{ date }}" onchange="window.location='/metabolic?date='+this.value">
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Log Measurements</div>
+      <div class="card-body">
+        <form method="post" action="/metabolic">
+          <input type="hidden" name="date" value="{{ date }}">
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small">Weight (kg)</label>
+              <input class="form-control" name="weight_kg" type="number" step="0.1" placeholder="—"
+                     value="{{ log.weight_kg if log and log.weight_kg else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Body Fat (%)</label>
+              <input class="form-control" name="body_fat_pct" type="number" step="0.1" placeholder="—"
+                     value="{{ log.body_fat_pct if log and log.body_fat_pct else '' }}">
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small">Resting HR (bpm)</label>
+              <input class="form-control" name="resting_hr" type="number" placeholder="—"
+                     value="{{ log.resting_hr if log and log.resting_hr else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Blood Glucose (mg/dL)</label>
+              <input class="form-control" name="blood_glucose" type="number" step="0.1" placeholder="—"
+                     value="{{ log.blood_glucose if log and log.blood_glucose else '' }}">
+            </div>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-6">
+              <label class="form-label small">Systolic BP (mmHg)</label>
+              <input class="form-control" name="systolic_bp" type="number" placeholder="—"
+                     value="{{ log.systolic_bp if log and log.systolic_bp else '' }}">
+            </div>
+            <div class="col-6">
+              <label class="form-label small">Diastolic BP (mmHg)</label>
+              <input class="form-control" name="diastolic_bp" type="number" placeholder="—"
+                     value="{{ log.diastolic_bp if log and log.diastolic_bp else '' }}">
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Energy level (1–10)</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="range" class="form-range flex-grow-1" name="energy_level" min="1" max="10"
+                     value="{{ log.energy_level if log and log.energy_level else 5 }}" id="energyRange"
+                     oninput="document.getElementById('eval').textContent=this.value">
+              <span id="eval" style="color:#68d391;font-weight:700;min-width:2ch">{{ log.energy_level if log and log.energy_level else 5 }}</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Mood (1–10)</label>
+            <div class="d-flex align-items-center gap-3">
+              <input type="range" class="form-range flex-grow-1" name="mood" min="1" max="10"
+                     value="{{ log.mood if log and log.mood else 5 }}" id="moodRange"
+                     oninput="document.getElementById('mval').textContent=this.value">
+              <span id="mval" style="color:#f6ad55;font-weight:700;min-width:2ch">{{ log.mood if log and log.mood else 5 }}</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Notes (optional)</label>
+            <input class="form-control" name="notes" placeholder="—"
+                   value="{{ log.notes if log and log.notes else '' }}">
+          </div>
+          <button class="btn btn-primary w-100">Save</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if log %}
+  <div class="col-md-7">
+    <div class="card p-3">
+      <div class="row g-3">
+        {% if log.weight_kg %}
+        <div class="col-6 col-lg-4 text-center">
+          <div style="font-size:1.8rem;font-weight:700;color:#e2e8f0">{{ log.weight_kg }}</div>
+          <div style="color:#718096;font-size:.8rem">kg</div>
+        </div>
+        {% endif %}
+        {% if log.body_fat_pct %}
+        <div class="col-6 col-lg-4 text-center">
+          <div style="font-size:1.8rem;font-weight:700;color:#e2e8f0">{{ log.body_fat_pct }}%</div>
+          <div style="color:#718096;font-size:.8rem">body fat</div>
+        </div>
+        {% endif %}
+        {% if log.resting_hr %}
+        <div class="col-6 col-lg-4 text-center">
+          <div style="font-size:1.8rem;font-weight:700;color:#fc8181">{{ log.resting_hr }}</div>
+          <div style="color:#718096;font-size:.8rem">bpm resting</div>
+        </div>
+        {% endif %}
+        {% if log.systolic_bp and log.diastolic_bp %}
+        <div class="col-6 col-lg-4 text-center">
+          <div style="font-size:1.8rem;font-weight:700;color:#e2e8f0">{{ log.systolic_bp }}/{{ log.diastolic_bp }}</div>
+          <div style="color:#718096;font-size:.8rem">mmHg</div>
+        </div>
+        {% endif %}
+        {% if log.blood_glucose %}
+        <div class="col-6 col-lg-4 text-center">
+          <div style="font-size:1.8rem;font-weight:700;color:#e2e8f0">{{ log.blood_glucose }}</div>
+          <div style="color:#718096;font-size:.8rem">mg/dL glucose</div>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if log.energy_level or log.mood %}
+      <hr style="border-color:#2d3748">
+      {% if log.energy_level %}
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <span style="color:#718096;min-width:60px;font-size:.9rem">Energy</span>
+        <div class="progress flex-grow-1"><div class="progress-bar" style="width:{{ log.energy_level * 10 }}%;background:#68d391"></div></div>
+        <strong style="color:#68d391">{{ log.energy_level }}/10</strong>
+      </div>
+      {% endif %}
+      {% if log.mood %}
+      <div class="d-flex align-items-center gap-3">
+        <span style="color:#718096;min-width:60px;font-size:.9rem">Mood</span>
+        <div class="progress flex-grow-1"><div class="progress-bar" style="width:{{ log.mood * 10 }}%;background:#f6ad55"></div></div>
+        <strong style="color:#f6ad55">{{ log.mood }}/10</strong>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
