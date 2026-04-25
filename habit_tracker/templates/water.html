@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Water — {{ date }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0 fw-bold"><i class="bi bi-droplet section-icon" style="color:#63b3ed"></i>Water</h5>
+  <div class="date-nav">
+    <input type="date" value="{{ date }}" onchange="window.location='/water?date='+this.value">
+  </div>
+</div>
+
+<div class="row g-3 justify-content-center">
+  <div class="col-md-5">
+    <!-- Big circle progress -->
+    <div class="card p-4 text-center mb-3">
+      <canvas id="waterGauge" width="180" height="180" style="margin:0 auto;display:block"></canvas>
+      <div class="mt-2" style="font-size:2rem;font-weight:700;color:#63b3ed">{{ (total_ml/1000)|round(2) }} L</div>
+      <div style="color:#718096">of 2.0 L goal · {{ water_pct }}%</div>
+    </div>
+
+    <!-- Quick log buttons -->
+    <div class="card p-3">
+      <div class="card-header mb-3">Quick Log</div>
+      <div class="row g-2">
+        {% for label, ml in [('Small glass', 200), ('Medium glass', 300), ('Large glass', 500), ('Bottle', 750), ('Large bottle', 1000)] %}
+        <div class="col-6">
+          <form method="post" action="/water">
+            <input type="hidden" name="date" value="{{ date }}">
+            <input type="hidden" name="amount_ml" value="{{ ml }}">
+            <button class="btn btn-outline-secondary w-100" style="font-size:.85rem">
+              <i class="bi bi-droplet" style="color:#63b3ed"></i> {{ label }}<br>
+              <small style="color:#718096">{{ ml }} ml</small>
+            </button>
+          </form>
+        </div>
+        {% endfor %}
+        <!-- Custom -->
+        <div class="col-12 mt-1">
+          <form method="post" action="/water" class="d-flex gap-2">
+            <input type="hidden" name="date" value="{{ date }}">
+            <input class="form-control" name="amount_ml" type="number" min="1" placeholder="Custom ml…" required>
+            <button class="btn btn-primary">Log</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ctx = document.getElementById('waterGauge').getContext('2d');
+const pct = {{ water_pct }};
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [pct, 100 - pct],
+      backgroundColor: ['#63b3ed', '#2d3748'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    cutout: '78%',
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    animation: { duration: 800 }
+  }
+});
+</script>
+{% endblock %}

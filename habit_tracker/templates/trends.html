@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Trends{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0 fw-bold"><i class="bi bi-graph-up section-icon" style="color:#68d391"></i>Trends</h5>
+  <div class="d-flex align-items-center gap-2">
+    <label class="small" style="color:#718096">Days</label>
+    <select class="form-select form-select-sm" id="daysSelect" style="width:auto">
+      <option value="7">7</option>
+      <option value="14" selected>14</option>
+      <option value="30">30</option>
+      <option value="90">90</option>
+    </select>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% set metrics = [
+    ('weight',         'Weight (kg)',          '#68d391'),
+    ('sleep_duration', 'Sleep Duration (h)',   '#b794f4'),
+    ('sleep_quality',  'Sleep Quality (/10)',  '#b794f4'),
+    ('exercise_min',   'Exercise (min)',        '#68d391'),
+    ('calories_in',    'Calories In',          '#f6ad55'),
+    ('water',          'Water (ml)',            '#63b3ed'),
+    ('energy',         'Energy (/10)',          '#68d391'),
+    ('mood',           'Mood (/10)',            '#f6ad55'),
+    ('resting_hr',     'Resting HR (bpm)',      '#fc8181'),
+  ] %}
+  {% for metric, label, color in metrics %}
+  <div class="col-md-6 col-lg-4">
+    <div class="card p-3">
+      <div class="mb-2" style="font-size:.85rem;color:#a0aec0;font-weight:600">{{ label }}</div>
+      <canvas id="chart_{{ metric }}" height="110"></canvas>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLOR_GRID = '#2d3748';
+const chartInstances = {};
+
+function buildChart(metric, color) {
+  const days = document.getElementById('daysSelect').value;
+  fetch(`/api/trend/${metric}?days=${days}`)
+    .then(r => r.json())
+    .then(data => {
+      const ctx = document.getElementById('chart_' + metric);
+      if (chartInstances[metric]) chartInstances[metric].destroy();
+      chartInstances[metric] = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: [{
+            data: data.values,
+            borderColor: color,
+            backgroundColor: color + '22',
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: color,
+            fill: true,
+            tension: 0.3,
+            spanGaps: true,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#718096', maxTicksLimit: 5 }, grid: { color: COLOR_GRID } },
+            y: { ticks: { color: '#718096' }, grid: { color: COLOR_GRID } }
+          },
+          animation: { duration: 400 }
+        }
+      });
+    });
+}
+
+const metrics = [
+  ['weight','#68d391'], ['sleep_duration','#b794f4'], ['sleep_quality','#b794f4'],
+  ['exercise_min','#68d391'], ['calories_in','#f6ad55'], ['water','#63b3ed'],
+  ['energy','#68d391'], ['mood','#f6ad55'], ['resting_hr','#fc8181']
+];
+
+function loadAll() { metrics.forEach(([m, c]) => buildChart(m, c)); }
+document.getElementById('daysSelect').addEventListener('change', loadAll);
+loadAll();
+</script>
+{% endblock %}
